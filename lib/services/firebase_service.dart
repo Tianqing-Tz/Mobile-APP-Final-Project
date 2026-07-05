@@ -137,6 +137,7 @@ class FirebaseService {
       'imageBase64': imageBase64 ?? '',
       'latitude': product.latitude,
       'longitude': product.longitude,
+      'video_url': product.videoUrl,
       'status': 0,
       'createdAt': FieldValue.serverTimestamp(),
     });
@@ -176,6 +177,7 @@ class FirebaseService {
       'price': product.price,
       'description': product.description,
       'imageBase64': imageBase64 ?? '',
+      'video_url': product.videoUrl,
     });
   }
 

@@ -13,6 +13,7 @@ class Product {
   final String? imageBase64;
   final double? latitude;
   final double? longitude;
+  final String? videoUrl;
   Product({
     this.firestoreId,
     this.id,
@@ -26,6 +27,7 @@ class Product {
     this.imageBase64,
     this.latitude,
     this.longitude,
+    this.videoUrl,
   });
 
   factory Product.fromFirestore(DocumentSnapshot doc) {
@@ -41,6 +43,7 @@ class Product {
       imageBase64: data['imageBase64'],
       latitude: (data['latitude'] as num?)?.toDouble(),
       longitude: (data['longitude'] as num?)?.toDouble(),
+      videoUrl: data['video_url'],
     );
   }
 
@@ -56,6 +59,7 @@ class Product {
       imagePath: map['image_path'],
       latitude: (map['latitude'] as num?)?.toDouble(),
       longitude: (map['longitude'] as num?)?.toDouble(),
+      videoUrl: map['video_url'],
     );
   }
 
@@ -71,6 +75,7 @@ class Product {
       'image_path': imagePath,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
+      if (videoUrl != null) 'video_url': videoUrl,
     };
   }
 }

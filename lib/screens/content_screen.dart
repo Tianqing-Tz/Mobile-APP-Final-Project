@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import '../models/product_model.dart';
 import '../services/firebase_service.dart';
 import 'map_picker_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ContentScreen extends StatefulWidget {
   const ContentScreen({super.key});
@@ -25,6 +26,7 @@ class _ContentScreenState extends State<ContentScreen> {
   String _description = '';
   String? _selectedImagePath;
   LatLng? _pickedLocation;
+  String? _uploadedVideoUrl;
   bool _isFavCached = false;
   bool _sessionLoaded = false;
   bool _isSubmitting = false;
@@ -217,6 +219,18 @@ class _ContentScreenState extends State<ContentScreen> {
                 }
               },
             ),
+            TextFormField(
+              initialValue: isEdit ? product.videoUrl ?? '' : '',
+              decoration: const InputDecoration(
+                labelText: 'Video URL',
+                border: OutlineInputBorder(),
+              ),
+              onSaved: (val) {
+                print("Saving video URL: $val");
+                _uploadedVideoUrl = val;
+              },
+            ),
+
             const SizedBox(height: 16),
             TextFormField(
               initialValue: isEdit ? product.title : '',
@@ -261,7 +275,6 @@ class _ContentScreenState extends State<ContentScreen> {
                   : () async {
                       if (!_formKey.currentState!.validate()) return;
                       _formKey.currentState!.save();
-                      setState(() => _isSubmitting = true);
                       try {
                         if (isEdit) {
                           await _fbService.updateProduct(
@@ -276,6 +289,7 @@ class _ContentScreenState extends State<ContentScreen> {
                               imagePath: _selectedImagePath,
                               latitude: _pickedLocation?.latitude,
                               longitude: _pickedLocation?.longitude,
+                              videoUrl: _uploadedVideoUrl,
                               imageBase64: _selectedImagePath == null
                                   ? product.imageBase64
                                   : null,
@@ -290,14 +304,13 @@ class _ContentScreenState extends State<ContentScreen> {
                               imagePath: _selectedImagePath,
                               latitude: _pickedLocation?.latitude,
                               longitude: _pickedLocation?.longitude,
+                              videoUrl: _uploadedVideoUrl,
                             ),
                           );
                         }
                         if (!mounted) return;
                         Navigator.pop(context, true);
                       } catch (e) {
-                        if (!mounted) return;
-                        setState(() => _isSubmitting = false);
                         ScaffoldMessenger.of(
                           context,
                         ).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -417,6 +430,37 @@ class _ContentScreenState extends State<ContentScreen> {
             ),
           ],
           const SizedBox(height: 20),
+          if (product.videoUrl != null && product.videoUrl!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.open_in_new),
+                label: const Text('Watch Item Video'),
+                onPressed: () async {
+                  final Uri url = Uri.parse(product.videoUrl!.trim());
+                  try {
+                    final bool launched = await launchUrl(
+                      url,
+                      mode: LaunchMode.externalApplication,
+                    );
+
+                    if (!launched) {
+                      throw 'Could not launch $url';
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Unable to open the link. Please check if the URL is correct.',
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+            ),
           if (isOwner)
             SizedBox(
               width: double.infinity,
